@@ -1,0 +1,29 @@
+name: Deploy Test
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  deploy-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare SSH key
+        run: |
+          echo "$SSH_KEY" > /tmp/ec2_key
+          chmod 600 /tmp/ec2_key
+        env:
+          SSH_KEY: ${{ secrets.SSH_KEY }}
+
+      - name: Deploy to TEST
+        env:
+          HOSTS: ${{ vars.TEST_IP }}
+          USER: ubuntu
+          KEY_PATH: /tmp/ec2_key
+          index_path: index.html
+        run: |
+          ./scripts/push_index.sh

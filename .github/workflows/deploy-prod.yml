@@ -1,0 +1,31 @@
+name: Deploy Prod
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  deploy-prod:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        # Falls du Artefakte buildest, würdest du das hier tun.
+
+      - name: Prepare SSH key
+        run: |
+          echo "$SSH_KEY" > /tmp/ec2_key
+          chmod 600 /tmp/ec2_key
+        env:
+          SSH_KEY: ${{ secrets.SSH_KEY }}
+
+      - name: Deploy to PROD fleet
+        env:
+          HOSTS: ${{ vars.EC2_IPS }}
+          USER: ubuntu
+          KEY_PATH: /tmp/ec2_key
+          index_path: index.html
+        run: |
+          ./scripts/push_index.sh
